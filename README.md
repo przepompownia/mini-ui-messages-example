@@ -1,2 +1,2 @@
-# repro.nvim
-Skeleton of `init.lua` for repoducing possible Neovim bugs
+# mini-ui-messages-example
+Playground for merge ui-messages and mini-notify
