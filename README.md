@@ -20,3 +20,9 @@ vim.api.nvim_echo({ {'Error ', 'ErrorMsg'}, {'Warning\n', 'WarningMsg'}, {'Added
 :Inspect
 ```
 ![inspect](assets/inspect.png)
+
+## todo
+### `ext_messages`
+- missing `redraw()` for `:=1` output
+- replace search count messages instead of displaying separate notifications
+- probably fix lots other issues
