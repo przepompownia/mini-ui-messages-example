@@ -155,6 +155,7 @@ api.nvim_create_autocmd({'UIEnter', 'CmdlineLeave'}, {
       elseif event == 'msg_show' and kind == 'search_count' then
         vim.notify({content})
       else
+        -- it shouldn't be called in normal use
         vim.notify(('ev: %s'):format(event), 'WARN')
         vim.notify(('k: %s'):format(vim.inspect(kind)), 'WARN')
         vim.notify(('r: %s'):format(vim.inspect(replace_last)), 'WARN')
