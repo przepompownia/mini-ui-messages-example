@@ -39,7 +39,7 @@ local function handleUiMessages(event, kind, content, replace)
       or kind == 'echomsg'
       or kind == 'lua_error'
     ) then
-    addChMessage({content}, (' %s '):format(kind))
+    addChMessage({content})
   elseif event == 'msg_show' and kind == '' then         -- :={x = 1, y = 1}
     bufferedContents[#bufferedContents + 1] = content
     addChMessage(bufferedContents)

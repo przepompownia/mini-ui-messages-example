@@ -73,8 +73,12 @@ function M.setup()
   vim.wo[unhandledMessageWin].number = true
 end
 
-function M.add(chunkSequences, title)
-  api.nvim_win_set_config(messageWin, {hide = false, title_pos = title and 'center', title = title or ''})
+function M.add(chunkSequences)
+  api.nvim_win_set_config(messageWin, {
+    hide = false,
+    -- title_pos = title and 'center',
+    -- title = title or '',
+  })
 
   api.nvim_buf_clear_namespace(messageBuf, ns, 0, -1)
   api.nvim_buf_set_lines(messageBuf, 0, -1, true, {})
