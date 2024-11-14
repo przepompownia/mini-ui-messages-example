@@ -1,143 +1,17 @@
-local api = vim.api
-local ns = api.nvim_create_namespace('messageRedirection')
+local thisInitFile = debug.getinfo(1).source:match('@?(.*)')
+local cwd = vim.fs.dirname(thisInitFile)
+local appname = vim.env.NVIM_APPNAME or 'nvim'
 
-local hls = setmetatable({}, {
-  __index = function (t, id)
-    return rawget(t, id) or (rawset(t, id, vim.fn.synIDattr(id, 'name')) and rawget(t, id))
-  end
-})
+vim.env.XDG_CONFIG_HOME = cwd
+vim.env.XDG_DATA_HOME = vim.fs.joinpath(cwd, '.xdg', 'data')
+vim.env.XDG_STATE_HOME = vim.fs.joinpath(cwd, '.xdg', 'state')
+vim.env.XDG_CACHE_HOME = vim.fs.joinpath(cwd, '.xdg', 'cache')
+vim.fn.mkdir(vim.fs.joinpath(vim.env.XDG_CACHE_HOME, appname), 'p')
+local stdPathConfig = vim.fn.stdpath('config')
 
-local function composeLines(chunkSequences, startLine)
-  local line, col, newCol, msg, hlname = startLine or 0, 0, 0, nil, nil
-  local lines, highlights = {}, {}
+vim.opt.runtimepath:prepend(stdPathConfig)
 
-  for _, chunkSequence in ipairs(chunkSequences) do
-    for _, chunk in ipairs(chunkSequence) do
-      hlname = hls[chunk[3]]
-      msg = vim.split(chunk[2], '\n')
-      for index, msgpart in ipairs(msg) do
-        if index > 1 then
-          line, col = line + 1, 0
-        end
-        newCol = col + #msgpart
-        lines[line + 1] = (lines[line + 1] or '') .. msgpart
-        highlights[#highlights + 1] = {line, col, newCol, hlname}
-        col = newCol
-      end
-    end
-  end
+local notifier = require('ui-example.notifier')
+notifier.setup()
 
-  return lines, highlights
-end
-
-local extmarkOpts = {end_row = 0, end_col = 0, hl_group = 'Normal', hl_eol = true, hl_mode = 'combine'}
-
-api.nvim_create_autocmd('CmdlineEnter', {
-  callback = function ()
-    vim.ui_detach(ns)
-    vim.schedule(function ()
-      api.nvim__redraw({statusline = true})
-    end)
-  end
-})
-
-local messageBuf = api.nvim_create_buf(false, true)
--- local messageHistoryBuf = api.nvim_create_buf(false, true)
-local unhandledMessageBuf = api.nvim_create_buf(false, true)
-local messageWin = api.nvim_open_win(messageBuf, false, {
-  relative = 'editor',
-  row = vim.go.lines - 1,
-  col = vim.o.columns,
-  width = 60,
-  height = 10,
-  anchor = 'SE',
-  border = 'rounded',
-  hide = true,
-  style = 'minimal',
-})
-vim.wo[messageWin].winblend = 25
-
-local unhandledMessageWin = api.nvim_open_win(unhandledMessageBuf, false, {
-  relative = 'editor',
-  row = vim.go.lines - 13,
-  col = vim.o.columns,
-  width = 60,
-  height = 14,
-  anchor = 'SE',
-  border = 'rounded',
-  title_pos = 'center',
-  title = ' unhandled messages ',
-  hide = true,
-  style = 'minimal',
-})
-vim.wo[unhandledMessageWin].winblend = 25
-vim.wo[unhandledMessageWin].number = true
-
-local function displayChunkedMessage(chunkSequences, title)
-  api.nvim_win_set_config(messageWin, {hide = false, title_pos = title and 'center', title = title or ''})
-
-  api.nvim_buf_clear_namespace(messageBuf, ns, 0, -1)
-  api.nvim_buf_set_lines(messageBuf, 0, -1, true, {})
-
-  local lines, highlights = composeLines(chunkSequences)
-
-  api.nvim_buf_set_lines(messageBuf, 0, -1, true, lines)
-  for _, highlight in ipairs(highlights) do
-    extmarkOpts.end_row, extmarkOpts.end_col, extmarkOpts.hl_group = highlight[1], highlight[3], highlight[4]
-    api.nvim_buf_set_extmark(messageBuf, ns, highlight[1], highlight[2], extmarkOpts)
-  end
-end
-
-local function debug(msg)
-  api.nvim_win_set_config(unhandledMessageWin, {hide = false})
-  api.nvim_buf_set_lines(unhandledMessageBuf, -1, -1, true, {msg})
-end
-
-local bufferedContents = {}
-api.nvim_create_autocmd({'UIEnter', 'CmdlineLeave'}, {
-  callback = function ()
-    ---@diagnostic disable-next-line: redundant-parameter
-    vim.ui_attach(ns, {ext_messages = true, ext_cmdline = false}, function (event, kind, content, replace)
-      if
-        event == 'cmdline_hide'
-        or event == 'cmdline_show'
-        or event == 'grid_destroy'
-        or event == 'msg_history_clear'
-        or event == 'msg_history_show'
-        or event == 'msg_ruler'
-        or event == 'msg_showcmd'
-        or event == 'msg_showmode'
-      then
-        return
-      end
-      -- debug(('ev: %s, k: %s, r: %s, buffered: %s'):format(event, vim.inspect(kind), replace, vim.inspect(bufferedContents)))
-      if
-        event == 'msg_show'
-        and (
-          kind == 'emsg'
-          or kind == 'echo'
-          or kind == 'echoerr'
-          or kind == 'echomsg'
-          or kind == 'lua_error'
-        ) then
-        displayChunkedMessage({content}, (' %s '):format(kind))
-      elseif event == 'msg_show' and kind == '' then -- :={x = 1, y = 1}
-        bufferedContents[#bufferedContents + 1] = content
-        displayChunkedMessage(bufferedContents)
-      elseif event == 'msg_clear' and kind == nil then
-        bufferedContents = {}
-      elseif event == 'msg_show' and kind == 'return_prompt' then
-        api.nvim_input('\r')
-      elseif event == 'msg_show' and kind == 'search_count' then
-        displayChunkedMessage(content)
-      else
-        debug(('ev: %s, k: %s, r: %s'):format(event, vim.inspect(kind), replace))
-        debug(vim.inspect(content))
-      end
-    end)
-  end
-})
-
--- todo
--- `:hi` from keymap
--- update
+require('ui-example.msgredir').init(notifier.add, notifier.add)
