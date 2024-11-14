@@ -97,7 +97,7 @@ local bufferedContents = {}
 api.nvim_create_autocmd({'UIEnter', 'CmdlineLeave'}, {
   callback = function ()
     ---@diagnostic disable-next-line: redundant-parameter
-    vim.ui_attach(ns, {ext_messages = true, ext_cmdline = false}, function (event, kind, content, replace_last)
+    vim.ui_attach(ns, {ext_messages = true, ext_cmdline = false}, function (event, kind, content, replace)
       if
         event == 'cmdline_hide'
         or event == 'cmdline_show'
@@ -110,7 +110,7 @@ api.nvim_create_autocmd({'UIEnter', 'CmdlineLeave'}, {
       then
         return
       end
-      -- debug(('ev: %s, k: %s, r: %s, buffered: %s'):format(event, vim.inspect(kind), replace_last, vim.inspect(bufferedContents)))
+      -- debug(('ev: %s, k: %s, r: %s, buffered: %s'):format(event, vim.inspect(kind), replace, vim.inspect(bufferedContents)))
       if
         event == 'msg_show'
         and (
@@ -131,7 +131,7 @@ api.nvim_create_autocmd({'UIEnter', 'CmdlineLeave'}, {
       elseif event == 'msg_show' and kind == 'search_count' then
         displayChunkedMessage(content)
       else
-        debug(('ev: %s, k: %s, r: %s'):format(event, vim.inspect(kind), replace_last))
+        debug(('ev: %s, k: %s, r: %s'):format(event, vim.inspect(kind), replace))
         debug(vim.inspect(content))
       end
     end)

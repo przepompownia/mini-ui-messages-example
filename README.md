@@ -26,3 +26,4 @@ vim.api.nvim_echo({ {'Error ', 'ErrorMsg'}, {'Warning\n', 'WarningMsg'}, {'Added
 - missing `redraw()` for `:=1` output
 - replace search count messages instead of displaying separate notifications
 - probably fix lots other issues
+- update some messages (not only if replace flag is true)
