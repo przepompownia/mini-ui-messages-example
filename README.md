@@ -23,8 +23,5 @@ vim.api.nvim_echo({ {'Error ', 'ErrorMsg'}, {'Warning\n', 'WarningMsg'}, {'Added
 
 ## todo
 ### `ext_messages`
-- missing `redraw()` for `:=1` output
-- replace search count messages instead of displaying separate notifications
-- probably fix lots other issues
-- update some messages (not only if replace flag is true)
 - search pattern (originally for bottom-left corner) shows in similar way as for `:=1` (event: `msg_show`, kind: `''`)
+- probably fix lots other issues
