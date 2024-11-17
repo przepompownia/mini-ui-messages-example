@@ -10,8 +10,23 @@ vim.fn.mkdir(vim.fs.joinpath(vim.env.XDG_CACHE_HOME, appname), 'p')
 local stdPathConfig = vim.fn.stdpath('config')
 
 vim.opt.runtimepath:prepend(stdPathConfig)
+-- vim.opt.packpath:prepend(stdPathConfig)
+-- local pluginsPath = vim.fs.joinpath(cwd, 'nvim/pack/plugins/opt')
+--
+-- --- @type plugin.install.data
+-- local plugins = {
+--   ['osv'] = {url = 'https://github.com/jbyuki/one-small-step-for-vimkind'},
+-- }
+--
+-- require('ui-example.plugin').install(plugins, pluginsPath)
 
 local notifier = require('ui-example.notifier')
 notifier.setup()
 
-require('ui-example.msgredir').init(notifier.add, notifier.add)
+require('ui-example.msgredir').init(notifier.add, notifier.update, notifier.debug)
+
+-- require('osv').launch {
+--   host = '127.0.0.1',
+--   port = 9004,
+--   log = '/tmp/osv.log',
+-- }

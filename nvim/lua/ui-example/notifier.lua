@@ -1,30 +1,35 @@
 local api = vim.api
 local ns = api.nvim_create_namespace('messageRedirection')
 
+local msgHistory = {}
+
 local hls = setmetatable({}, {
   __index = function (t, id)
     return rawget(t, id) or (rawset(t, id, vim.fn.synIDattr(id, 'name')) and rawget(t, id))
   end
 })
 
-local function composeLines(chunkSequences, startLine)
-  local line, col, newCol, msg, hlname = startLine or 0, 0, 0, nil, nil
+local function composeLines()
+  local line, col, newCol, msg, hlname = 0, 0, 0, nil, nil
   local lines, highlights = {}, {}
 
-  for _, chunkSequence in ipairs(chunkSequences) do
-    for _, chunk in ipairs(chunkSequence) do
-      hlname = hls[chunk[3]]
-      msg = vim.split(chunk[2], '\n')
-      for index, msgpart in ipairs(msg) do
-        if index > 1 then
-          line, col = line + 1, 0
+  for _, chunkSequences in ipairs(msgHistory) do
+    for _, chunkSequence in ipairs(chunkSequences) do
+      for _, chunk in ipairs(chunkSequence) do
+        hlname = hls[chunk[3]]
+        msg = vim.split(chunk[2], '\n')
+        for index, msgpart in ipairs(msg) do
+          if index > 1 then
+            line, col = line + 1, 0
+          end
+          newCol = col + #msgpart
+          lines[line + 1] = (lines[line + 1] or '') .. msgpart
+          highlights[#highlights + 1] = {line, col, newCol, hlname}
+          col = newCol
         end
-        newCol = col + #msgpart
-        lines[line + 1] = (lines[line + 1] or '') .. msgpart
-        highlights[#highlights + 1] = {line, col, newCol, hlname}
-        col = newCol
       end
     end
+    line, col = line + 1, 0
   end
 
   return lines, highlights
@@ -47,7 +52,7 @@ function M.setup()
     relative = 'editor',
     row = vim.go.lines - 1,
     col = vim.o.columns,
-    width = 60,
+    width = 100,
     height = 10,
     anchor = 'SE',
     border = 'rounded',
@@ -60,7 +65,7 @@ function M.setup()
     relative = 'editor',
     row = vim.go.lines - 13,
     col = vim.o.columns,
-    width = 60,
+    width = 120,
     height = 14,
     anchor = 'SE',
     border = 'rounded',
@@ -73,30 +78,43 @@ function M.setup()
   vim.wo[unhandledMessageWin].number = true
 end
 
+local function display()
+  vim.schedule(function ()
+    api.nvim_buf_clear_namespace(messageBuf, ns, 0, -1)
+    api.nvim_buf_set_lines(messageBuf, 0, -1, true, {})
+
+    local lines, highlights = composeLines()
+
+    api.nvim_buf_set_lines(messageBuf, 0, -1, true, lines)
+    for _, highlight in ipairs(highlights) do
+      extmarkOpts.end_row, extmarkOpts.end_col, extmarkOpts.hl_group = highlight[1], highlight[3], highlight[4]
+      api.nvim_buf_set_extmark(messageBuf, ns, highlight[1], highlight[2], extmarkOpts)
+    end
+    api.nvim_win_set_config(messageWin, {
+      hide = false,
+      height = (#lines < vim.o.lines - 3) and #lines or vim.o.lines - 3
+    })
+  end)
+end
+
 function M.add(chunkSequences)
-  api.nvim_win_set_config(messageWin, {
-    hide = false,
-    -- title_pos = title and 'center',
-    -- title = title or '',
-  })
+  local newId = #msgHistory + 1
+  msgHistory[newId] = chunkSequences
+  display()
 
-  api.nvim_buf_clear_namespace(messageBuf, ns, 0, -1)
-  api.nvim_buf_set_lines(messageBuf, 0, -1, true, {})
+  return newId
+end
 
-  local lines, highlights = composeLines(chunkSequences)
-
-  api.nvim_buf_set_lines(messageBuf, 0, -1, true, lines)
-  for _, highlight in ipairs(highlights) do
-    extmarkOpts.end_row, extmarkOpts.end_col, extmarkOpts.hl_group = highlight[1], highlight[3], highlight[4]
-    api.nvim_buf_set_extmark(messageBuf, ns, highlight[1], highlight[2], extmarkOpts)
-  end
-
-  return 1
+function M.update(id, chunkSequences)
+  msgHistory[id] = chunkSequences
+  display()
 end
 
 function M.debug(msg)
-  api.nvim_win_set_config(unhandledMessageWin, {hide = false})
-  api.nvim_buf_set_lines(unhandledMessageBuf, -1, -1, true, {msg})
+  vim.schedule(function ()
+    api.nvim_win_set_config(unhandledMessageWin, {hide = false})
+    api.nvim_buf_set_lines(unhandledMessageBuf, -1, -1, true, {msg})
+  end)
 end
 
 return M

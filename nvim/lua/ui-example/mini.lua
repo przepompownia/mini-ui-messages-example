@@ -37,6 +37,14 @@ local function sort(notifArr)
   return res
 end
 
+function M.update(id, msg)
+  local notif = notify.get(id)
+  if not notif or notif.ts_remove then
+    return notify.add(msg)
+  end
+  return notify.update(id, msg)
+end
+
 function M.setup()
   notify.setup({
     content = {

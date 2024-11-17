@@ -27,3 +27,4 @@ vim.api.nvim_echo({ {'Error ', 'ErrorMsg'}, {'Warning\n', 'WarningMsg'}, {'Added
 - replace search count messages instead of displaying separate notifications
 - probably fix lots other issues
 - update some messages (not only if replace flag is true)
+- search pattern (originally for bottom-left corner) shows in similar way as for `:=1` (event: `msg_show`, kind: `''`)
