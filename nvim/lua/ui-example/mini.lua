@@ -40,9 +40,10 @@ end
 function M.update(id, msg)
   local notif = notify.get(id)
   if not notif or notif.ts_remove then
-    return notify.add(msg)
+    return vim.notify(msg)
   end
-  return notify.update(id, msg)
+  -- bump the timer
+  return notify.update(id, {msg = msg})
 end
 
 function M.setup()
