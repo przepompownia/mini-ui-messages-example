@@ -49,7 +49,7 @@ local defaultOpts = {notify = true, debug = true}
 ---@param opts notifier.opts
 function M.setup(opts)
   --- @type notifier.opts
-  opts = vim.tbl_extend('keep', opts, defaultOpts)
+  opts = vim.tbl_extend('keep', opts or {}, defaultOpts)
 
   if opts.debug then
     debugBuf = api.nvim_create_buf(false, true)
