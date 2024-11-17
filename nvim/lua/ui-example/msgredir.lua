@@ -18,13 +18,12 @@ local debugMessage = function (content)
   error('Not configured yet')
 end
 
-local bufferedContents = {}
 local msgids = {}
 
 local previous = ''
 
 local function handleUiMessages(event, kind, content, replace)
-  -- local dm = ('ev: %s, k: %s, r: %s, c: %s, bid: %s'):format(event, vim.inspect(kind), replace, vim.inspect(content), msgids['buffered'])
+  -- local dm = ('ev: %s, k: %s, r: %s, c: %s'):format(event, vim.inspect(kind), replace, vim.inspect(content))
   -- if dm ~= previous then
   --   debugMessage(dm)
   --   previous = dm
@@ -42,8 +41,7 @@ local function handleUiMessages(event, kind, content, replace)
     return
   end
   if event == 'msg_clear' and kind == nil then
-    bufferedContents = {}
-    msgids['buffered'] = nil
+    msgids['search'] = nil
   elseif event == 'msg_show' then
     -- if #content == 1 and content[1][2] == '\n' then
     --   return
@@ -56,21 +54,19 @@ local function handleUiMessages(event, kind, content, replace)
       or kind == 'echoerr'
       or kind == 'echomsg'
       or kind == 'lua_error'
+      or kind == 'lua_print'
     then
-      addChMessage({content})
+      addChMessage(content)
     elseif kind == '' then -- :={x = 1, y = 1} and search
-      bufferedContents[#bufferedContents + 1] = content
-      if replace and msgids['buffered'] then
-        updateChMessage(msgids['buffered'], bufferedContents)
+      if replace and msgids['search'] then
+        updateChMessage(msgids['search'], content)
       else
-        msgids['buffered'] = addChMessage(bufferedContents)
+        msgids['search'] = addChMessage(content)
       end
     elseif kind == 'search_count' then
-      bufferedContents = {}
-      if replace and msgids['buffered'] then
-        updateChMessage(msgids['buffered'], {content})
+      if replace and msgids['search'] then
       else
-        msgids['buffered'] = addChMessage({content})
+        msgids['search'] = addChMessage(content)
       end
     end
   else
