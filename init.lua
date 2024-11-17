@@ -16,10 +16,12 @@ local pluginsPath = vim.fs.joinpath(cwd, 'nvim/pack/plugins/opt')
 
 --- @type plugin.install.data
 local plugins = {
-  ['mini-notify'] = {url = 'https://github.com/przepompownia/mini.notify', branch = 'ui-messages'},
+  ['mini-notify'] = {url = 'https://github.com/przepompownia/mini.notify', branch = 'ui-messages-nvim-31205'},
 }
 
 require('ui-example.plugin').install(plugins, pluginsPath)
 local mini = require('ui-example.mini')
 mini.setup()
-require('ui-example.msgredir').init(vim.notify, mini.update)
+local notifier = require('ui-example.notifier')
+notifier.setup({notify = false})
+require('ui-example.msgredir').init(vim.notify, mini.update, notifier.debug)

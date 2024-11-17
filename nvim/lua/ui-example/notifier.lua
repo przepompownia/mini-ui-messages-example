@@ -13,20 +13,18 @@ local function composeLines()
   local line, col, newCol, msg, hlname = 0, 0, 0, nil, nil
   local lines, highlights = {}, {}
 
-  for _, chunkSequences in ipairs(msgHistory) do
-    for _, chunkSequence in ipairs(chunkSequences) do
-      for _, chunk in ipairs(chunkSequence) do
-        hlname = hls[chunk[3]]
-        msg = vim.split(chunk[2], '\n')
-        for index, msgpart in ipairs(msg) do
-          if index > 1 then
-            line, col = line + 1, 0
-          end
-          newCol = col + #msgpart
-          lines[line + 1] = (lines[line + 1] or '') .. msgpart
-          highlights[#highlights + 1] = {line, col, newCol, hlname}
-          col = newCol
+  for _, chunkSequence in ipairs(msgHistory) do
+    for _, chunk in ipairs(chunkSequence) do
+      hlname = hls[chunk[3]]
+      msg = vim.split(chunk[2], '\n')
+      for index, msgpart in ipairs(msg) do
+        if index > 1 then
+          line, col = line + 1, 0
         end
+        newCol = col + #msgpart
+        lines[line + 1] = (lines[line + 1] or '') .. msgpart
+        highlights[#highlights + 1] = {line, col, newCol, hlname}
+        col = newCol
       end
     end
     line, col = line + 1, 0
@@ -38,44 +36,55 @@ end
 local extmarkOpts = {end_row = 0, end_col = 0, hl_group = 'Normal', hl_eol = true, hl_mode = 'combine'}
 
 local messageBuf
-local unhandledMessageBuf
+local debugBuf
 local messageWin
-local unhandledMessageWin
+local debugWin
 
 local M = {}
 
-function M.setup()
-  messageBuf = api.nvim_create_buf(false, true)
-  -- messageHistoryBuf = api.nvim_create_buf(false, true)
-  unhandledMessageBuf = api.nvim_create_buf(false, true)
-  messageWin = api.nvim_open_win(messageBuf, false, {
-    relative = 'editor',
-    row = vim.go.lines - 1,
-    col = vim.o.columns,
-    width = 100,
-    height = 10,
-    anchor = 'SE',
-    border = 'rounded',
-    hide = true,
-    style = 'minimal',
-  })
-  vim.wo[messageWin].winblend = 25
+--- @class notifier.opts
+local defaultOpts = {notify = true, debug = true}
 
-  unhandledMessageWin = api.nvim_open_win(unhandledMessageBuf, false, {
-    relative = 'editor',
-    row = vim.go.lines - 13,
-    col = vim.o.columns,
-    width = 120,
-    height = 14,
-    anchor = 'SE',
-    border = 'rounded',
-    title_pos = 'center',
-    title = ' unhandled messages ',
-    hide = true,
-    style = 'minimal',
-  })
-  vim.wo[unhandledMessageWin].winblend = 25
-  vim.wo[unhandledMessageWin].number = true
+---comment
+---@param opts notifier.opts
+function M.setup(opts)
+  --- @type notifier.opts
+  opts = vim.tbl_extend('keep', opts, defaultOpts)
+
+  if opts.debug then
+    debugBuf = api.nvim_create_buf(false, true)
+    debugWin = api.nvim_open_win(debugBuf, false, {
+      relative = 'editor',
+      row = vim.go.lines - 13,
+      col = vim.o.columns,
+      width = 120,
+      height = 14,
+      anchor = 'SE',
+      border = 'rounded',
+      title_pos = 'center',
+      title = ' unhandled messages ',
+      hide = true,
+      style = 'minimal',
+    })
+    vim.wo[debugWin].winblend = 25
+    vim.wo[debugWin].number = true
+  end
+
+  if opts.notify then
+    messageBuf = api.nvim_create_buf(false, true)
+    messageWin = api.nvim_open_win(messageBuf, false, {
+      relative = 'editor',
+      row = vim.go.lines - 1,
+      col = vim.o.columns,
+      width = 100,
+      height = 10,
+      anchor = 'SE',
+      border = 'rounded',
+      hide = true,
+      style = 'minimal',
+    })
+    vim.wo[messageWin].winblend = 25
+  end
 end
 
 local function display()
@@ -97,23 +106,23 @@ local function display()
   end)
 end
 
-function M.add(chunkSequences)
+function M.add(chunkSequence)
   local newId = #msgHistory + 1
-  msgHistory[newId] = chunkSequences
+  msgHistory[newId] = chunkSequence
   display()
 
   return newId
 end
 
-function M.update(id, chunkSequences)
-  msgHistory[id] = chunkSequences
+function M.update(id, chunkSequence)
+  msgHistory[id] = chunkSequence
   display()
 end
 
 function M.debug(msg)
   vim.schedule(function ()
-    api.nvim_win_set_config(unhandledMessageWin, {hide = false})
-    api.nvim_buf_set_lines(unhandledMessageBuf, -1, -1, true, {msg})
+    api.nvim_win_set_config(debugWin, {hide = false})
+    api.nvim_buf_set_lines(debugBuf, -1, -1, true, {msg})
   end)
 end
 
