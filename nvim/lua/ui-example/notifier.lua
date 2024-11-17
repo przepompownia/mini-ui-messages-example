@@ -122,7 +122,7 @@ end
 function M.debug(msg)
   vim.schedule(function ()
     api.nvim_win_set_config(debugWin, {hide = false})
-    api.nvim_buf_set_lines(debugBuf, -1, -1, true, {msg})
+    api.nvim_buf_set_lines(debugBuf, -1, -1, true, vim.split(msg, '\n'))
   end)
 end
 
