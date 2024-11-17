@@ -16,7 +16,7 @@ local pluginsPath = vim.fs.joinpath(cwd, 'nvim/pack/plugins/opt')
 
 --- @type plugin.install.data
 local plugins = {
-  ['mini-notify'] = {url = 'https://github.com/przepompownia/mini.notify', branch = 'ui-messages-nvim-31205'},
+  ['mini-notify'] = {url = 'https://github.com/przepompownia/mini.notify', branch = 'ui-messages'},
 }
 
 require('ui-example.plugin').install(plugins, pluginsPath)
