@@ -57,7 +57,7 @@ local function handleUiMessages(event, kind, content, replace)
       or kind == 'lua_print'
     then
       addChMessage(content)
-    elseif kind == '' then -- :={x = 1, y = 1} and search
+    elseif kind == '' then -- search
       if replace and msgids['search'] then
         updateChMessage(msgids['search'], content)
       else
