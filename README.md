@@ -22,6 +22,5 @@ vim.api.nvim_echo({ {'Error ', 'ErrorMsg'}, {'Warning\n', 'WarningMsg'}, {'Added
 ![inspect](assets/inspect.png)
 
 ## todo
-### `ext_messages`
-- search pattern (originally for bottom-left corner) shows in similar way as for `:=1` (event: `msg_show`, kind: `''`)
-- probably fix lots other issues
+### mini.notify: 
+- check if the timer set up on `add()` still works on update
