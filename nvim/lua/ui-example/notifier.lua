@@ -86,35 +86,41 @@ function M.setup(opts)
 end
 
 local function display()
-  vim.schedule(function ()
-    api.nvim_buf_clear_namespace(messageBuf, ns, 0, -1)
-    api.nvim_buf_set_lines(messageBuf, 0, -1, true, {})
+  api.nvim_buf_clear_namespace(messageBuf, ns, 0, -1)
+  api.nvim_buf_set_lines(messageBuf, 0, -1, true, {})
 
-    local lines, highlights = composeLines()
+  local lines, highlights = composeLines()
 
-    api.nvim_buf_set_lines(messageBuf, 0, -1, true, lines)
-    for _, highlight in ipairs(highlights) do
-      extmarkOpts.end_row, extmarkOpts.end_col, extmarkOpts.hl_group = highlight[1], highlight[3], highlight[4]
-      api.nvim_buf_set_extmark(messageBuf, ns, highlight[1], highlight[2], extmarkOpts)
-    end
-    api.nvim_win_set_config(messageWin, {
-      hide = false,
-      height = (#lines < vim.o.lines - 3) and #lines or vim.o.lines - 3
-    })
-  end)
+  api.nvim_buf_set_lines(messageBuf, 0, -1, true, lines)
+  for _, highlight in ipairs(highlights) do
+    extmarkOpts.end_row, extmarkOpts.end_col, extmarkOpts.hl_group = highlight[1], highlight[3], highlight[4]
+    api.nvim_buf_set_extmark(messageBuf, ns, highlight[1], highlight[2], extmarkOpts)
+  end
+  api.nvim_win_set_config(messageWin, {
+    hide = false,
+    height = (#lines < vim.o.lines - 3) and #lines or vim.o.lines - 3
+  })
+end
+
+local function displayWrapper()
+  if vim.in_fast_event() then
+    vim.schedule(display)
+    return
+  end
+  display()
 end
 
 function M.add(chunkSequence)
   local newId = #msgHistory + 1
   msgHistory[newId] = chunkSequence
-  display()
+  displayWrapper()
 
   return newId
 end
 
 function M.update(id, chunkSequence)
   msgHistory[id] = chunkSequence
-  display()
+  displayWrapper()
 end
 
 function M.debug(msg)
