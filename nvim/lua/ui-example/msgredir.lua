@@ -18,8 +18,7 @@ local debugMessage = function (content)
   error('Not configured yet')
 end
 
-local msgids = {}
-
+local searchId = nil
 local previous = ''
 
 local function handleUiMessages(event, kind, content, replace)
@@ -41,11 +40,7 @@ local function handleUiMessages(event, kind, content, replace)
     return
   end
   if event == 'msg_clear' and kind == nil then
-    msgids['search'] = nil
   elseif event == 'msg_show' then
-    -- if #content == 1 and content[1][2] == '\n' then
-    --   return
-    -- end
     if kind == 'return_prompt' then
       api.nvim_input('\r')
     elseif
@@ -57,16 +52,12 @@ local function handleUiMessages(event, kind, content, replace)
       or kind == 'lua_print'
     then
       addChMessage(content)
-    elseif kind == '' then -- search
-      if replace and msgids['search'] then
-        updateChMessage(msgids['search'], content)
-      else
-        msgids['search'] = addChMessage(content)
-      end
+    elseif kind == '' then -- search pattern (https://github.com/neovim/neovim/issues/31244) and maybe something else
     elseif kind == 'search_count' then
-      if replace and msgids['search'] then
+      if replace and searchId then
+        updateChMessage(searchId, content)
       else
-        msgids['search'] = addChMessage(content)
+        searchId = addChMessage(content)
       end
     end
   else
@@ -85,7 +76,7 @@ local function attach()
   end
   vim.ui_attach(ns, {ext_messages = true, ext_cmdline = false}, handleUiMessages)
   -- vim.ui_attach(ns, {ext_messages = true, ext_cmdline = false}, vim.schedule_wrap(handleUiMessages))
-  -- It causes waiting for <CR> input but debugging
+  -- It causes waiting for <CR> input but debugging with osv works
 end
 
 local function detach()
