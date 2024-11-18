@@ -102,31 +102,35 @@ local function display()
   })
 end
 
-local function displayWrapper()
+local function inFastEventWrapper(cb)
   if vim.in_fast_event() then
-    vim.schedule(display)
+    vim.schedule(cb)
     return
   end
-  display()
+  cb()
 end
 
 function M.add(chunkSequence)
   local newId = #msgHistory + 1
   msgHistory[newId] = chunkSequence
-  displayWrapper()
+  inFastEventWrapper(display)
 
   return newId
 end
 
 function M.update(id, chunkSequence)
   msgHistory[id] = chunkSequence
-  displayWrapper()
+  inFastEventWrapper(display)
+end
+
+local function displayDebugMessages(msg)
+  api.nvim_win_set_config(debugWin, {hide = false})
+  api.nvim_buf_set_lines(debugBuf, -1, -1, true, vim.split(msg, '\n'))
 end
 
 function M.debug(msg)
-  vim.schedule(function ()
-    api.nvim_win_set_config(debugWin, {hide = false})
-    api.nvim_buf_set_lines(debugBuf, -1, -1, true, vim.split(msg, '\n'))
+  inFastEventWrapper(function ()
+    displayDebugMessages(msg)
   end)
 end
 
