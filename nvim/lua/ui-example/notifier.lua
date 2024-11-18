@@ -42,15 +42,47 @@ local debugWin
 
 local M = {}
 
+--- @type uv.uv_timer_t[]
+local removal_timers = {}
+
+local function destroy_removal_timer(id)
+  local timer = removal_timers[id]
+  if not timer then
+    return
+  end
+
+  timer:stop()
+  timer:close()
+  removal_timers[id] = nil
+end
+
+local function defer_removal(duration, id)
+  local timer = assert(vim.uv.new_timer())
+  timer:start(duration, duration, function ()
+    M.remove(id) -- schedule it while #1341 or similar not merged
+  end)
+  removal_timers[id] = timer
+end
+
+local function defer_removal_again(id)
+  local timer = removal_timers[id]
+  if not timer then
+    return
+  end
+  timer:again()
+end
+
 --- @class notifier.opts
-local defaultOpts = {notify = true, debug = true}
+local defaultOpts = {notify = true, debug = true, duration = 5000}
+--- @class notifier.opts?
+local realOpts
 
 ---@param opts notifier.opts
 function M.setup(opts)
   --- @type notifier.opts
-  opts = vim.tbl_extend('keep', opts or {}, defaultOpts)
+  realOpts = vim.tbl_extend('keep', opts or {}, defaultOpts)
 
-  if opts.debug then
+  if realOpts.debug then
     debugBuf = api.nvim_create_buf(false, true)
     debugWin = api.nvim_open_win(debugBuf, false, {
       relative = 'editor',
@@ -69,7 +101,7 @@ function M.setup(opts)
     vim.wo[debugWin].number = true
   end
 
-  if opts.notify then
+  if realOpts.notify then
     messageBuf = api.nvim_create_buf(false, true)
     messageWin = api.nvim_open_win(messageBuf, false, {
       relative = 'editor',
@@ -96,9 +128,10 @@ local function display()
     extmarkOpts.end_row, extmarkOpts.end_col, extmarkOpts.hl_group = highlight[1], highlight[3], highlight[4]
     api.nvim_buf_set_extmark(messageBuf, ns, highlight[1], highlight[2], extmarkOpts)
   end
+  local height = (#lines < vim.o.lines - 3) and #lines or vim.o.lines - 3
   api.nvim_win_set_config(messageWin, {
-    hide = false,
-    height = (#lines < vim.o.lines - 3) and #lines or vim.o.lines - 3
+    hide = height == 0,
+    height = (height == 0) and 1 or height
   })
 end
 
@@ -114,12 +147,20 @@ function M.add(chunkSequence)
   local newId = #msgHistory + 1
   msgHistory[newId] = chunkSequence
   inFastEventWrapper(display)
+  -- defer_removal(realOpts.duration, newId)
 
   return newId
 end
 
 function M.update(id, chunkSequence)
   msgHistory[id] = chunkSequence
+  inFastEventWrapper(display)
+  defer_removal_again(id)
+end
+
+function M.remove(id)
+  msgHistory[id] = nil
+  destroy_removal_timer(id)
   inFastEventWrapper(display)
 end
 
