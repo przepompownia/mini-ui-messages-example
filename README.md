@@ -20,7 +20,3 @@ vim.api.nvim_echo({ {'Error ', 'ErrorMsg'}, {'Warning\n', 'WarningMsg'}, {'Added
 :Inspect
 ```
 ![inspect](assets/inspect.png)
-
-## todo
-### mini.notify: 
-- check if the timer set up on `add()` still works on update
