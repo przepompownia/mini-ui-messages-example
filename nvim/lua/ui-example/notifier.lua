@@ -1,6 +1,9 @@
 local api = vim.api
 local ns = api.nvim_create_namespace('messageRedirection')
 
+--- @alias msgHistoryItem {msg: table<integer, string, integer>[], removed: boolean}
+
+--- @type msgHistoryItem[]
 local msgHistory = {}
 
 local hls = setmetatable({}, {
@@ -13,21 +16,23 @@ local function composeLines()
   local line, col, newCol, msg, hlname = 0, 0, 0, nil, nil
   local lines, highlights = {}, {}
 
-  for _, chunkSequence in ipairs(msgHistory) do
-    for _, chunk in ipairs(chunkSequence) do
-      hlname = hls[chunk[3]]
-      msg = vim.split(chunk[2], '\n')
-      for index, msgpart in ipairs(msg) do
-        if index > 1 then
-          line, col = line + 1, 0
+  for _, item in ipairs(msgHistory) do
+    if not item.removed then
+      for _, chunk in ipairs(item.msg) do
+        hlname = hls[chunk[3]]
+        msg = vim.split(chunk[2], '\n')
+        for index, msgpart in ipairs(msg) do
+          if index > 1 then
+            line, col = line + 1, 0
+          end
+          newCol = col + #msgpart
+          lines[line + 1] = (lines[line + 1] or '') .. msgpart
+          highlights[#highlights + 1] = {line, col, newCol, hlname}
+          col = newCol
         end
-        newCol = col + #msgpart
-        lines[line + 1] = (lines[line + 1] or '') .. msgpart
-        highlights[#highlights + 1] = {line, col, newCol, hlname}
-        col = newCol
       end
+      line, col = line + 1, 0
     end
-    line, col = line + 1, 0
   end
 
   return lines, highlights
@@ -145,21 +150,21 @@ end
 
 function M.add(chunkSequence)
   local newId = #msgHistory + 1
-  msgHistory[newId] = chunkSequence
+  msgHistory[newId] = {msg = chunkSequence, removed = false}
   inFastEventWrapper(display)
-  -- defer_removal(realOpts.duration, newId)
+  defer_removal(realOpts.duration, newId)
 
   return newId
 end
 
 function M.update(id, chunkSequence)
-  msgHistory[id] = chunkSequence
+  msgHistory[id].msg = chunkSequence
   inFastEventWrapper(display)
   defer_removal_again(id)
 end
 
 function M.remove(id)
-  msgHistory[id] = nil
+  msgHistory[id].removed = true
   destroy_removal_timer(id)
   inFastEventWrapper(display)
 end
