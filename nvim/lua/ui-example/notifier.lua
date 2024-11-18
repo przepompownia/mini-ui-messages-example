@@ -45,7 +45,6 @@ local M = {}
 --- @class notifier.opts
 local defaultOpts = {notify = true, debug = true}
 
----comment
 ---@param opts notifier.opts
 function M.setup(opts)
   --- @type notifier.opts
@@ -79,7 +78,6 @@ function M.setup(opts)
       width = 100,
       height = 10,
       anchor = 'SE',
-      border = 'rounded',
       hide = true,
       style = 'minimal',
     })
