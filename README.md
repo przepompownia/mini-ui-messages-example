@@ -27,3 +27,5 @@ vim.api.nvim_echo({ {'Error ', 'ErrorMsg'}, {'Warning\n', 'WarningMsg'}, {'Added
 - wait for https://github.com/neovim/neovim/issues/31248
 ### mini
 - update doesn't affect history
+### redirection
+- handle `:message clear` events
