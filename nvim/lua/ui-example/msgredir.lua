@@ -59,9 +59,10 @@ local function handleUiMessages(event, kind, content, replace)
       else
         searchId = addChMessage(content)
       end
+    else
+      debugMessage(('ev: %s, k: %s, r: %s'):format(event, vim.inspect(kind), replace))
+      debugMessage(vim.inspect(content))
     end
-    debugMessage(('ev: %s, k: %s, r: %s'):format(event, vim.inspect(kind), replace))
-    debugMessage(vim.inspect(content))
   else
     debugMessage(('ev: %s, k: %s, r: %s'):format(event, vim.inspect(kind), replace))
     debugMessage(vim.inspect(content))
