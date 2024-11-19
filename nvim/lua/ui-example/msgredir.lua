@@ -52,7 +52,7 @@ local function handleUiMessages(event, kind, content, replace)
       or kind == 'lua_print'
     then
       addChMessage(content)
-    elseif kind == '' then -- search pattern (https://github.com/neovim/neovim/issues/31244) and maybe something else
+    elseif kind == '' then -- see test/functional/ui/messages_spec.lua in nvim src for examples (:hi, :map, ...)
     elseif kind == 'search_count' then
       if replace and searchId then
         updateChMessage(searchId, content)
