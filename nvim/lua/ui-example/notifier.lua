@@ -1,7 +1,15 @@
 local api = vim.api
 local ns = api.nvim_create_namespace('messageRedirection')
 
---- @alias msgHistoryItem {msg: table<integer, string, integer>[], removed: boolean}
+local extmarkOpts = {end_row = 0, end_col = 0, hl_group = 'Normal', hl_eol = true, hl_mode = 'combine'}
+
+local msgBuf
+local debugBuf
+local msgWin
+local debugWin
+
+local M = {}
+
 
 --- @type msgHistoryItem[]
 local msgHistory = {}
@@ -38,14 +46,31 @@ local function composeLines()
   return lines, highlights
 end
 
-local extmarkOpts = {end_row = 0, end_col = 0, hl_group = 'Normal', hl_eol = true, hl_mode = 'combine'}
+local function openMsgWin()
+  if msgWin then
+    return
+  end
 
-local messageBuf
-local debugBuf
-local messageWin
-local debugWin
+  msgWin = api.nvim_open_win(msgBuf, false, {
+    relative = 'editor',
+    row = vim.go.lines - 1,
+    col = vim.o.columns,
+    width = 100,
+    height = 10,
+    anchor = 'SE',
+    style = 'minimal',
+  })
+  vim.wo[msgWin].winblend = 25
+end
 
-local M = {}
+local function closeMsgWin()
+  if not msgWin or not api.nvim_win_is_valid(msgWin) then
+    return
+  end
+
+  api.nvim_win_close(msgWin, true)
+  msgWin = nil
+end
 
 --- @type uv.uv_timer_t[]
 local removal_timers = {}
@@ -82,6 +107,74 @@ local defaultOpts = {notify = true, debug = true, duration = 5000}
 --- @class notifier.opts?
 local realOpts
 
+local function display()
+  api.nvim_buf_clear_namespace(msgBuf, ns, 0, -1)
+  api.nvim_buf_set_lines(msgBuf, 0, -1, true, {})
+
+  local lines, highlights = composeLines()
+
+  api.nvim_buf_set_lines(msgBuf, 0, -1, true, lines)
+  for _, highlight in ipairs(highlights) do
+    extmarkOpts.end_row, extmarkOpts.end_col, extmarkOpts.hl_group = highlight[1], highlight[3], highlight[4]
+    api.nvim_buf_set_extmark(msgBuf, ns, highlight[1], highlight[2], extmarkOpts)
+  end
+  local height = (#lines < vim.o.lines - 3) and #lines or vim.o.lines - 3
+
+  if height == 0 then
+    closeMsgWin()
+    return
+  end
+
+  openMsgWin()
+  api.nvim_win_set_config(msgWin, {
+    height = (height == 0) and 1 or height
+  })
+end
+
+local function inFastEventWrapper(cb)
+  if vim.in_fast_event() then
+    vim.schedule(cb)
+    return
+  end
+  cb()
+end
+
+local function refresh()
+  inFastEventWrapper(display)
+end
+
+function M.add(chunkSequence)
+  local newId = #msgHistory + 1
+  msgHistory[newId] = {msg = chunkSequence, removed = false}
+  refresh()
+  defer_removal(realOpts.duration, newId)
+
+  return newId
+end
+
+function M.update(id, chunkSequence)
+  msgHistory[id].msg = chunkSequence
+  refresh()
+  defer_removal_again(id)
+end
+
+function M.remove(id)
+  msgHistory[id].removed = true
+  destroy_removal_timer(id)
+  refresh()
+end
+
+local function displayDebugMessages(msg)
+  api.nvim_win_set_config(debugWin, {hide = false})
+  api.nvim_buf_set_lines(debugBuf, -1, -1, true, vim.split(msg, '\n'))
+end
+
+function M.debug(msg)
+  inFastEventWrapper(function ()
+    displayDebugMessages(msg)
+  end)
+end
+
 ---@param opts notifier.opts
 function M.setup(opts)
   --- @type notifier.opts
@@ -107,77 +200,18 @@ function M.setup(opts)
   end
 
   if realOpts.notify then
-    messageBuf = api.nvim_create_buf(false, true)
-    messageWin = api.nvim_open_win(messageBuf, false, {
-      relative = 'editor',
-      row = vim.go.lines - 1,
-      col = vim.o.columns,
-      width = 100,
-      height = 10,
-      anchor = 'SE',
-      hide = true,
-      style = 'minimal',
-    })
-    vim.wo[messageWin].winblend = 25
+    msgBuf = api.nvim_create_buf(false, true)
   end
-end
 
-local function display()
-  api.nvim_buf_clear_namespace(messageBuf, ns, 0, -1)
-  api.nvim_buf_set_lines(messageBuf, 0, -1, true, {})
-
-  local lines, highlights = composeLines()
-
-  api.nvim_buf_set_lines(messageBuf, 0, -1, true, lines)
-  for _, highlight in ipairs(highlights) do
-    extmarkOpts.end_row, extmarkOpts.end_col, extmarkOpts.hl_group = highlight[1], highlight[3], highlight[4]
-    api.nvim_buf_set_extmark(messageBuf, ns, highlight[1], highlight[2], extmarkOpts)
-  end
-  local height = (#lines < vim.o.lines - 3) and #lines or vim.o.lines - 3
-  api.nvim_win_set_config(messageWin, {
-    hide = height == 0,
-    height = (height == 0) and 1 or height
+  local augroup = api.nvim_create_augroup('arctgx.msg', {clear = true})
+  api.nvim_create_autocmd({'TabEnter', 'VimResized'}, {
+    group = augroup,
+    callback = refresh,
   })
-end
-
-local function inFastEventWrapper(cb)
-  if vim.in_fast_event() then
-    vim.schedule(cb)
-    return
-  end
-  cb()
-end
-
-function M.add(chunkSequence)
-  local newId = #msgHistory + 1
-  msgHistory[newId] = {msg = chunkSequence, removed = false}
-  inFastEventWrapper(display)
-  defer_removal(realOpts.duration, newId)
-
-  return newId
-end
-
-function M.update(id, chunkSequence)
-  msgHistory[id].msg = chunkSequence
-  inFastEventWrapper(display)
-  defer_removal_again(id)
-end
-
-function M.remove(id)
-  msgHistory[id].removed = true
-  destroy_removal_timer(id)
-  inFastEventWrapper(display)
-end
-
-local function displayDebugMessages(msg)
-  api.nvim_win_set_config(debugWin, {hide = false})
-  api.nvim_buf_set_lines(debugBuf, -1, -1, true, vim.split(msg, '\n'))
-end
-
-function M.debug(msg)
-  inFastEventWrapper(function ()
-    displayDebugMessages(msg)
-  end)
+  api.nvim_create_autocmd({'TabLeave'}, {
+    group = augroup,
+    callback = closeMsgWin,
+  })
 end
 
 return M
