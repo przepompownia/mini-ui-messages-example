@@ -64,11 +64,14 @@ local function openMsgWin()
 end
 
 local function closeMsgWin()
-  if not msgWin or not api.nvim_win_is_valid(msgWin) then
+  if not msgWin then
     return
   end
 
-  api.nvim_win_close(msgWin, true)
+  if api.nvim_win_is_valid(msgWin) then
+    api.nvim_win_close(msgWin, true)
+  end
+
   msgWin = nil
 end
 
@@ -208,7 +211,7 @@ function M.setup(opts)
     group = augroup,
     callback = refresh,
   })
-  api.nvim_create_autocmd({'TabLeave'}, {
+  api.nvim_create_autocmd({'TabLeave', 'TabClosed'}, {
     group = augroup,
     callback = closeMsgWin,
   })
