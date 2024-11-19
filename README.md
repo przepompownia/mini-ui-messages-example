@@ -28,4 +28,4 @@ vim.api.nvim_echo({ {'Error ', 'ErrorMsg'}, {'Warning\n', 'WarningMsg'}, {'Added
 ### mini
 - update doesn't affect history
 ### redirection
-- handle `:message clear` events
+- handle `:messages` and `:message clear`
