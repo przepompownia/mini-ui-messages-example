@@ -33,18 +33,19 @@ local function handleUiMessages(event, kind, content, replace)
 
   if kind == 'return_prompt' then
     api.nvim_input('\r')
-  elseif
-    kind == 'emsg'
-    or kind == 'echo'
-    or kind == 'echoerr'
-    or kind == 'echomsg'
-    or kind == 'lua_error'
-    or kind == 'lua_print'
-    or kind == '' -- see test/functional/ui/messages_spec.lua in nvim src for examples (:hi, :map, ...)
-  then
-    addChMessage(content, kind)
   elseif kind == 'search_count' then
     searchId = (replace and searchId) and updateChMessage(searchId, content, kind) or addChMessage(content, kind)
+    -- elseif
+    --   kind == 'emsg'
+    --   or kind == 'echo'
+    --   or kind == 'echoerr'
+    --   or kind == 'echomsg'
+    --   or kind == 'lua_error'
+    --   or kind == 'lua_print'
+    --   or kind == ''
+    -- then
+  else
+    addChMessage(content, kind)
   end
 end
 
