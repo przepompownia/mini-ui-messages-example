@@ -33,7 +33,6 @@ local function handleUiMessages(event, kind, content, replace)
 
   if kind == 'return_prompt' then
     api.nvim_input('\r')
-  elseif kind == 'search_cmd' then
   elseif
     kind == 'emsg'
     or kind == 'echo'
