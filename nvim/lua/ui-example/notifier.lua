@@ -9,7 +9,7 @@ local msgWin
 local debugWin
 local msgId = 0
 
-local priorities = {
+local priorities = { 1, 2, 3, 4, 5,
   search_count = 6,
 }
 
@@ -29,6 +29,9 @@ local msgsToDisplay = {}
 
 local hls = setmetatable({}, {
   __index = function (t, id)
+    if type(id) == 'string' then
+      return id
+    end
     return rawget(t, id) or (rawset(t, id, vim.fn.synIDattr(id, 'name')) and rawget(t, id))
   end
 })
@@ -185,6 +188,19 @@ end
 local function newId()
   msgId = msgId + 1
   return msgId
+end
+
+local logLEvels = vim.log.levels
+local notifyLevelHl = {
+  [logLEvels.DEBUG] = 'DebugMsg',
+  [logLEvels.INFO] = 'InfoMsg',
+  [logLEvels.WARN] = 'WarningMsg',
+  [logLEvels.ERROR] = 'ErrorMsg',
+}
+
+function M.notify(msg, level)
+  local chunkSequence = {{0, msg, notifyLevelHl[level] or 'Normal'}}
+  M.addUiMessage(chunkSequence, level)
 end
 
 function M.addUiMessage(chunkSequence, kind)

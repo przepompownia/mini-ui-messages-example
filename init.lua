@@ -24,6 +24,7 @@ local notifier = require('ui-example.notifier')
 notifier.setup()
 
 require('ui-example.msgredir').init(notifier.addUiMessage, notifier.updateUiMessage, notifier.debug)
+vim.notify = notifier.notify
 
 -- require('osv').launch {
 --   host = '127.0.0.1',

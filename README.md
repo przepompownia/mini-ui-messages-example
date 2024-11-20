@@ -6,7 +6,7 @@ Playground for making use of Nvim UI messages redirection. Requires Neovim at le
 nvim -u init.lua init.lua
 ```
 
-## examples with mini.notify
+## examples
 ```lua
 vim.api.nvim_echo({ {'Error ', 'ErrorMsg'}, {'Warning\n', 'WarningMsg'}, {'Added ', 'DiffAdd'}, {'Changed', 'DiffChange'} }, false, {})
 ```
@@ -17,10 +17,5 @@ vim.api.nvim_echo({ {'Error ', 'ErrorMsg'}, {'Warning\n', 'WarningMsg'}, {'Added
 ![inspect](assets/inspect.png)
 
 ## todo
-### nvim
-- wait for https://github.com/neovim/neovim/issues/31244
-- wait for https://github.com/neovim/neovim/issues/31248
-### mini
-- update doesn't affect history
 ### redirection
 - handle `:messages` and `:message clear`
