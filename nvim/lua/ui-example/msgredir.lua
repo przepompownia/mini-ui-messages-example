@@ -27,47 +27,29 @@ local function handleUiMessages(event, kind, content, replace)
   --   debugMessage(dm)
   --   previous = dm
   -- end
-  if
-    event == 'cmdline_hide'
-    or event == 'cmdline_show'
-    or event == 'grid_destroy'
-    or event == 'msg_history_clear'
-    or event == 'msg_history_show'
-    or event == 'msg_ruler'
-    or event == 'msg_showcmd'
-    or event == 'msg_showmode'
-  then
+  if event ~= 'msg_show' then
     return
   end
-  if event == 'msg_clear' and kind == nil then
-  elseif event == 'msg_show' then
-    if kind == 'return_prompt' then
-      api.nvim_input('\r')
-    elseif kind == 'search_cmd' then
-    elseif
-      kind == 'emsg'
-      or kind == 'echo'
-      or kind == 'echoerr'
-      or kind == 'echomsg'
-      or kind == 'lua_error'
-      or kind == 'lua_print'
-    then
-      addChMessage(content)
-    elseif kind == '' then -- see test/functional/ui/messages_spec.lua in nvim src for examples (:hi, :map, ...)
-      addChMessage(content)
-    elseif kind == 'search_count' then
-      if replace and searchId then
-        updateChMessage(searchId, content)
-      else
-        searchId = addChMessage(content)
-      end
+
+  if kind == 'return_prompt' then
+    api.nvim_input('\r')
+  elseif kind == 'search_cmd' then
+  elseif
+    kind == 'emsg'
+    or kind == 'echo'
+    or kind == 'echoerr'
+    or kind == 'echomsg'
+    or kind == 'lua_error'
+    or kind == 'lua_print'
+    or kind == '' -- see test/functional/ui/messages_spec.lua in nvim src for examples (:hi, :map, ...)
+  then
+    addChMessage(content)
+  elseif kind == 'search_count' then
+    if replace and searchId then
+      updateChMessage(searchId, content)
     else
-      debugMessage(('ev: %s, k: %s, r: %s'):format(event, vim.inspect(kind), replace))
-      debugMessage(vim.inspect(content))
+      searchId = addChMessage(content)
     end
-  else
-    debugMessage(('ev: %s, k: %s, r: %s'):format(event, vim.inspect(kind), replace))
-    debugMessage(vim.inspect(content))
   end
 end
 
