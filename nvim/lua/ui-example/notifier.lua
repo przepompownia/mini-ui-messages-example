@@ -187,11 +187,11 @@ function M.setup(opts)
     debugBuf = api.nvim_create_buf(false, true)
     debugWin = api.nvim_open_win(debugBuf, false, {
       relative = 'editor',
-      row = vim.go.lines - 13,
+      row = 0,
       col = vim.o.columns,
       width = 120,
       height = 14,
-      anchor = 'SE',
+      anchor = 'NE',
       border = 'rounded',
       title_pos = 'center',
       title = ' unhandled messages ',
