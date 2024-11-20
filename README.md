@@ -1,5 +1,5 @@
 # mini-ui-messages-example
-Playground for making use of Nvim UI messages redirection. Requires Neovim at least on https://github.com/neovim/neovim/commit/f111c32ff9
+Playground for making use of Nvim UI messages redirection. Requires Neovim at least on https://github.com/neovim/neovim/commit/1b6442034f6a821d357fe59cd75fdae47a7f7cff
 
 ## start
 ```sh
