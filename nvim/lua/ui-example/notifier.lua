@@ -88,6 +88,7 @@ local function openMsgWin()
     height = 10,
     anchor = 'SE',
     style = 'minimal',
+    focusable = false,
   })
   vim.wo[msgWin].winblend = 25
 end
