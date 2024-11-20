@@ -118,7 +118,7 @@ end
 local function deferRemoval(duration, id)
   local timer = assert(vim.uv.new_timer())
   timer:start(duration, duration, function ()
-    M.remove(id) -- schedule it while #1341 or similar not merged
+    M.remove(id)
   end)
   removal_timers[id] = timer
 end
