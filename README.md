@@ -22,3 +22,4 @@ vim.api.nvim_echo({ {'Error ', 'ErrorMsg'}, {'Warning\n', 'WarningMsg'}, {'Added
 ### notifier
 - allow pause/recreate deletion timers
 - transparent background
+- right padding
