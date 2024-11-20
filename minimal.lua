@@ -23,7 +23,7 @@ vim.opt.runtimepath:prepend(stdPathConfig)
 local notifier = require('ui-example.notifier')
 notifier.setup()
 
-require('ui-example.msgredir').init(notifier.add, notifier.update, notifier.debug)
+require('ui-example.msgredir').init(notifier.addUiMessage, notifier.update, notifier.debug)
 
 -- require('osv').launch {
 --   host = '127.0.0.1',

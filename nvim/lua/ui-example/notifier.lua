@@ -146,7 +146,7 @@ local function refresh()
   inFastEventWrapper(display)
 end
 
-function M.add(chunkSequence)
+function M.addUiMessage(chunkSequence)
   local newId = #msgHistory + 1
   msgHistory[newId] = {msg = chunkSequence, removed = false}
   refresh()
@@ -155,7 +155,7 @@ function M.add(chunkSequence)
   return newId
 end
 
-function M.update(id, chunkSequence)
+function M.updateUiMessage(id, chunkSequence)
   msgHistory[id].msg = chunkSequence
   refresh()
   defer_removal_again(id)
