@@ -78,7 +78,7 @@ end
 --- @type uv.uv_timer_t[]
 local removal_timers = {}
 
-local function destroy_removal_timer(id)
+local function destroyRemovalTimer(id)
   local timer = removal_timers[id]
   if not timer then
     return
@@ -89,7 +89,7 @@ local function destroy_removal_timer(id)
   removal_timers[id] = nil
 end
 
-local function defer_removal(duration, id)
+local function deferRemoval(duration, id)
   local timer = assert(vim.uv.new_timer())
   timer:start(duration, duration, function ()
     M.remove(id) -- schedule it while #1341 or similar not merged
@@ -97,7 +97,7 @@ local function defer_removal(duration, id)
   removal_timers[id] = timer
 end
 
-local function defer_removal_again(id)
+local function deferRemovalAgain(id)
   local timer = removal_timers[id]
   if not timer then
     return
@@ -150,7 +150,7 @@ function M.addUiMessage(chunkSequence)
   local newId = #msgHistory + 1
   msgHistory[newId] = {msg = chunkSequence, removed = false}
   refresh()
-  defer_removal(realOpts.duration, newId)
+  deferRemoval(realOpts.duration, newId)
 
   return newId
 end
@@ -158,12 +158,12 @@ end
 function M.updateUiMessage(id, chunkSequence)
   msgHistory[id].msg = chunkSequence
   refresh()
-  defer_removal_again(id)
+  deferRemovalAgain(id)
 end
 
 function M.remove(id)
   msgHistory[id].removed = true
-  destroy_removal_timer(id)
+  destroyRemovalTimer(id)
   refresh()
 end
 
