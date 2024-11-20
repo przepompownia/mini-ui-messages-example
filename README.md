@@ -19,3 +19,6 @@ vim.api.nvim_echo({ {'Error ', 'ErrorMsg'}, {'Warning\n', 'WarningMsg'}, {'Added
 ## todo
 ### redirection
 - handle `:messages` and `:message clear`
+### notifier
+- allow pause/recreate deletion timers
+- transparent background
