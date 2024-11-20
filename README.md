@@ -1,5 +1,5 @@
 # mini-ui-messages-example
-Playground for making use of Nvim UI messages redirection, especially with [mini-notify](https://github.com/echasnovski/mini.notify) ([modified for these needs](https://github.com/przepompownia/mini.notify/tree/ui-messages)). Requires Neovim at least on https://github.com/neovim/neovim/commit/965dc81f818e50b5078d4b7efa5fbb8b771560f8
+Playground for making use of Nvim UI messages redirection, especially with [mini-notify](https://github.com/echasnovski/mini.notify) ([modified for these needs](https://github.com/przepompownia/mini.notify/tree/ui-messages)). Requires Neovim at least on https://github.com/neovim/neovim/commit/f111c32ff9
 
 ## start
 - example with plugin: in particular it will install `mini.notify` in this project subdirectory

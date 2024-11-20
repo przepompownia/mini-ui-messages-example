@@ -43,6 +43,7 @@ local function handleUiMessages(event, kind, content, replace)
   elseif event == 'msg_show' then
     if kind == 'return_prompt' then
       api.nvim_input('\r')
+    elseif kind == 'search_cmd' then
     elseif
       kind == 'emsg'
       or kind == 'echo'
@@ -53,6 +54,7 @@ local function handleUiMessages(event, kind, content, replace)
     then
       addChMessage(content)
     elseif kind == '' then -- see test/functional/ui/messages_spec.lua in nvim src for examples (:hi, :map, ...)
+      addChMessage(content)
     elseif kind == 'search_count' then
       if replace and searchId then
         updateChMessage(searchId, content)
