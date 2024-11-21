@@ -21,7 +21,7 @@ local function executeCommand(command)
 end
 
 local function gitUpdate(installPath, branch)
-  safeNotify(('Uptating "%s" branch on %s...'):format(branch or 'default', installPath), vim.log.levels.INFO)
+  safeNotify(('Uptating %s branch on %s...'):format(branch and ('%s'):format(branch) or 'default', installPath), vim.log.levels.INFO)
   local command = {'git', '-C', installPath, 'pull'}
   executeCommand(command)
 end
