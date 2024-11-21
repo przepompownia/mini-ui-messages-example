@@ -15,13 +15,3 @@ vim.api.nvim_echo({ {'Error ', 'ErrorMsg'}, {'Warning\n', 'WarningMsg'}, {'Added
 :Inspect
 ```
 ![inspect](assets/inspect.png)
-
-## todo
-### redirection
-- handle `:messages` and `:message clear`
-### notifier
-- allow pause/recreate deletion timers
-- transparent background
-- right padding
-- test message kinds added in https://github.com/neovim/neovim/pull/31279
-- squash adjacent duplicates
