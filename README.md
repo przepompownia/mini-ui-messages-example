@@ -1,4 +1,7 @@
 # mini-ui-messages-example
+
+No longer maintained. See https://github.com/przepompownia/msg-show.nvim rather than here
+
 Playground for making use of Nvim UI messages redirection. Requires Neovim at least on https://github.com/neovim/neovim/commit/1b6442034f6a821d357fe59cd75fdae47a7f7cff
 
 ## start
